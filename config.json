@@ -1,0 +1,13 @@
+{
+  "mcp_servers": [],
+  "execution": {
+    "default_timeout": 30,
+    "max_memory_mb": 512,
+    "workspace_path": "./workspace"
+  },
+  "logging": {
+    "level": "info",
+    "s3_enabled": false,
+    "stdout_enabled": true
+  }
+}
