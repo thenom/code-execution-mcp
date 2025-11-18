@@ -227,7 +227,6 @@ print(f"Updated record: {result['id']}")
    - Generate efficiency reports
 
 2. **Logging Integration**
-   - CDL logging SDK integration
    - Debug logging with minimal production logs
    - Error tracking for script generation issues
 
