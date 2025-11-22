@@ -23,6 +23,7 @@ type ExecutionResult struct {
 type PythonExecutor struct {
 	workspace      *WorkspaceManager
 	defaultTimeout time.Duration
+	generator      *ModuleGenerator
 }
 
 // NewPythonExecutor creates a new Python executor
@@ -42,20 +43,31 @@ func NewPythonExecutor(cfg *config.ExecutionConfig) (*PythonExecutor, error) {
 		defaultTimeout = 30 * time.Second
 	}
 
+	generator, err := NewModuleGenerator()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create module generator: %w", err)
+	}
+
 	return &PythonExecutor{
 		workspace:      workspace,
 		defaultTimeout: defaultTimeout,
+		generator:      generator,
 	}, nil
 }
 
 // Execute runs Python code with a specified timeout
-func (pe *PythonExecutor) Execute(ctx context.Context, code string, timeoutSeconds int) (*ExecutionResult, error) {
+func (pe *PythonExecutor) Execute(ctx context.Context, code string, timeoutSeconds int, servers map[string][]config.Tool, serverConfigs []config.MCPServerConfig) (*ExecutionResult, error) {
 	// Create session workspace
 	sessionPath, err := pe.workspace.CreateSession()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create session: %w", err)
 	}
 	defer pe.workspace.Cleanup(sessionPath)
+
+	// Generate modules
+	if err := pe.generator.Generate(sessionPath, servers, serverConfigs); err != nil {
+		return nil, fmt.Errorf("failed to generate modules: %w", err)
+	}
 
 	// Write code to a temporary file
 	scriptPath := filepath.Join(sessionPath, "script.py")
@@ -73,7 +85,7 @@ func (pe *PythonExecutor) Execute(ctx context.Context, code string, timeoutSecon
 	defer cancel()
 
 	// Execute Python script
-	cmd := exec.CommandContext(ctx, "python3", scriptPath)
+	cmd := exec.CommandContext(ctx, "python3", "script.py")
 	cmd.Dir = sessionPath
 
 	var stdout, stderr bytes.Buffer

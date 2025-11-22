@@ -1,8 +1,0 @@
-# code-execution-mcp/mcp
-mcp/server.go:52:5: cannot use s.executeCodeHandler (value of type func(ctx context.Context, request "github.com/mark3labs/mcp-go/mcp".CallToolRequest) (*"github.com/mark3labs/mcp-go/mcp".CallToolResult, error)) as server.ToolHandlerFunc value in argument to s.mcpServer.AddTool
-mcp/server.go:59:5: cannot use s.searchToolsHandler (value of type func(ctx context.Context, request "github.com/mark3labs/mcp-go/mcp".CallToolRequest) (*"github.com/mark3labs/mcp-go/mcp".CallToolResult, error)) as server.ToolHandlerFunc value in argument to s.mcpServer.AddTool
-mcp/server.go:66:22: request.Arguments undefined (type "github.com/mark3labs/mcp-go/mcp".CallToolRequest has no field or method Arguments)
-mcp/server.go:73:22: request.Arguments undefined (type "github.com/mark3labs/mcp-go/mcp".CallToolRequest has no field or method Arguments)
-mcp/server.go:96:22: request.Arguments undefined (type "github.com/mark3labs/mcp-go/mcp".CallToolRequest has no field or method Arguments)
-mcp/server.go:97:29: request.Arguments undefined (type "github.com/mark3labs/mcp-go/mcp".CallToolRequest has no field or method Arguments)
-mcp/server.go:98:28: request.Arguments undefined (type "github.com/mark3labs/mcp-go/mcp".CallToolRequest has no field or method Arguments)

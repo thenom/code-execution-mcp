@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/mark3labs/mcp-go/mcp"
@@ -63,19 +64,41 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) executeCodeHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	code, ok := request.Arguments["code"].(string)
+	args, ok := request.Params.Arguments.(map[string]interface{})
+	if !ok {
+		return mcp.NewToolResultError("arguments must be a map"), nil
+	}
+
+	code, ok := args["code"].(string)
 	if !ok {
 		return mcp.NewToolResultError("code argument is required and must be a string"), nil
 	}
 
 	// Get timeout if provided
 	timeout := 0
-	if t, ok := request.Arguments["timeout"].(float64); ok {
+	if t, ok := args["timeout"].(float64); ok {
 		timeout = int(t)
 	}
 
+	// Discover tools from all servers
+	servers := make(map[string][]config.Tool)
+	serverNames := s.httpClient.GetAllServers()
+
+	for _, name := range serverNames {
+		tools, err := s.httpClient.DiscoverTools(ctx, name)
+		if err != nil {
+			// Log error but continue? Or fail?
+			// For now, just log to stderr or ignore if we want partial functionality
+			// But better to fail if critical tools are missing?
+			// Let's just log and continue, as some servers might be down
+			fmt.Fprintf(os.Stderr, "Failed to discover tools for %s: %v\n", name, err)
+			continue
+		}
+		servers[name] = tools
+	}
+
 	// Execute the code
-	result, err := s.executor.Execute(ctx, code, timeout)
+	result, err := s.executor.Execute(ctx, code, timeout, servers, s.config.MCPServers)
 	if err != nil {
 		return mcp.NewToolResultError(fmt.Sprintf("Execution failed: %v", err)), nil
 	}
@@ -93,9 +116,15 @@ func (s *Server) executeCodeHandler(ctx context.Context, request mcp.CallToolReq
 }
 
 func (s *Server) searchToolsHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	query, _ := request.Arguments["query"].(string)
-	serverFilter, _ := request.Arguments["server_filter"].(string)
-	detailLevel, _ := request.Arguments["detail_level"].(string)
+	args, ok := request.Params.Arguments.(map[string]interface{})
+	if !ok {
+		// If no arguments provided, treat as empty map
+		args = make(map[string]interface{})
+	}
+
+	query, _ := args["query"].(string)
+	serverFilter, _ := args["server_filter"].(string)
+	detailLevel, _ := args["detail_level"].(string)
 
 	if detailLevel == "" {
 		detailLevel = "description"

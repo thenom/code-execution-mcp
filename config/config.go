@@ -12,6 +12,12 @@ type MCPServerConfig struct {
 	ExposeAll bool   `json:"expose_all"`
 }
 
+type Tool struct {
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	InputSchema map[string]interface{} `json:"inputSchema"`
+}
+
 type ExecutionConfig struct {
 	DefaultTimeout int    `json:"default_timeout"`
 	MaxMemoryMB    int    `json:"max_memory_mb"`

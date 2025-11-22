@@ -12,13 +12,6 @@ import (
 	"code-execution-mcp/config"
 )
 
-// Tool represents an MCP tool schema
-type Tool struct {
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	InputSchema map[string]interface{} `json:"inputSchema"`
-}
-
 // HTTPClientManager manages HTTP connections to backend MCP servers
 type HTTPClientManager struct {
 	clients map[string]*http.Client
@@ -44,7 +37,7 @@ func NewHTTPClientManager(serverConfigs []config.MCPServerConfig) *HTTPClientMan
 }
 
 // DiscoverTools retrieves available tools from a backend MCP server
-func (m *HTTPClientManager) DiscoverTools(ctx context.Context, serverName string) ([]Tool, error) {
+func (m *HTTPClientManager) DiscoverTools(ctx context.Context, serverName string) ([]config.Tool, error) {
 	cfg, ok := m.configs[serverName]
 	if !ok {
 		return nil, fmt.Errorf("server %s not found in configuration", serverName)
@@ -69,7 +62,7 @@ func (m *HTTPClientManager) DiscoverTools(ctx context.Context, serverName string
 		return nil, fmt.Errorf("server returned status %d: %s", resp.StatusCode, string(body))
 	}
 
-	var tools []Tool
+	var tools []config.Tool
 	if err := json.NewDecoder(resp.Body).Decode(&tools); err != nil {
 		return nil, fmt.Errorf("failed to decode tools: %w", err)
 	}
